@@ -98,8 +98,7 @@ class Brain {
     imageY = height - imageHeight;
     
     graph = new GraphDNN(width / 2, height / 2, width / 2, (height-2) / 2);
-    graph.setGraduationMaxX(10);
-    graph.setGraduationMaxY(10);
+    graph.setGraduationMax(10, 10);
   }
   
   

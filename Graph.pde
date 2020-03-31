@@ -17,8 +17,8 @@ class Graph {
   
   int graduationMaxX = 1;
   int graduationMaxY = 1;
-  float graduationDistanceX = 0;
-  float graduationDistanceY = 0;
+  float graduationDistanceX = 1;
+  float graduationDistanceY = 1;
   
   boolean isGraduationVisible = true;
   boolean isGridVisible = true;
@@ -65,16 +65,19 @@ class Graph {
     updateSteps();
   }
   
-  void setGraduationMaxX (int graduationMax) {
-    graduationMaxX = graduationMax;
-    graduationDistanceX = w / graduationMaxX;
+  void setGraduationMax (int graduationMaxX, int graduationMaxY) {
+    this.graduationMaxX = graduationMaxX;
+    this.graduationMaxY = graduationMaxY;
+    updateGraduationDistances();
     updateSteps();
   }
   
+  void setGraduationMaxX (int graduationMax) {
+    setGraduationMax(graduationMax, graduationMaxY);
+  }
+  
   void setGraduationMaxY (int graduationMax) {
-    graduationMaxY = graduationMax;
-    graduationDistanceY = h / graduationMaxY;
-    updateSteps();
+    setGraduationMax(graduationMaxX, graduationMax);
   }
   
   void setGraduationVisible (boolean isVisible) {
@@ -87,6 +90,11 @@ class Graph {
   }
   
   
+
+  void updateGraduationDistances () {
+    graduationDistanceX = w / graduationMaxX;
+    graduationDistanceY = h / graduationMaxY;
+  }
   
   void updateSteps () {
     stepX = valueMaxX / graduationMaxX;
@@ -94,19 +102,21 @@ class Graph {
   }
   
   void updatePadding () {
-    if (isGraduationVisible  &&  ! isPaddingActive) {
-      x += paddingLeft;
-      y += paddingTop;
-      w -= paddingRight + paddingLeft;
-      h -= paddingBottom + paddingTop;
-      isPaddingActive = true;
-    }
-    else if (! isGraduationVisible  &&  isPaddingActive) {
-      x -= paddingLeft;
-      y -= paddingTop;
-      w += paddingRight + paddingLeft;
-      h += paddingBottom + paddingTop;
-      isPaddingActive = false;
+    if (w > 0  &&  h > 0) {
+      if (isGraduationVisible && !isPaddingActive) {
+        x += paddingLeft;
+        y += paddingTop;
+        w -= paddingRight + paddingLeft;
+        h -= paddingBottom + paddingTop;
+        isPaddingActive = true;
+      } else if (!isGraduationVisible && isPaddingActive) {
+        x -= paddingLeft;
+        y -= paddingTop;
+        w += paddingRight + paddingLeft;
+        h += paddingBottom + paddingTop;
+        isPaddingActive = false;
+      }
+      updateGraduationDistances();
     }
   }
   
