@@ -97,9 +97,10 @@ class Brain {
     imageX = 0.0;
     imageY = height - imageHeight;
     
-    graph = new GraphDNN(width / 2, height / 2, width / 2, (height-2) / 2);
-    graph.setGraduationMaxX(10);
-    graph.setGraduationMaxY(10);
+    graph = new GraphDNN(DeepNeuralNetwork.this);
+    graph.setLocation(width / 2, height / 2);
+    graph.setSize(width / 2, (height-2) / 2);
+    graph.setGraduationMax(10, 10);
   }
   
   

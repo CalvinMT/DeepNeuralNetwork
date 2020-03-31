@@ -1,3 +1,5 @@
+import graph2d.*;
+
 final int NB_INPUTS = 4;
 final int NB_HIDDENS[] = new int[]{8, 8};
 final int NB_OUTPUTS = 16;

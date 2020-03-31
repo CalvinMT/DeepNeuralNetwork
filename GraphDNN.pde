@@ -1,7 +1,7 @@
-class GraphDNN extends Graph {
+class GraphDNN extends Graph2D {
   
-  GraphDNN (float x, float y, float w, float h) {
-    super(x, y, w, h);
+  GraphDNN (PApplet parent) {
+    super(parent);
   }
   
   
