@@ -22,7 +22,7 @@ class Structure {
     hiddenLayers = new Layer[0];
     outputLayer = new Layer(nbNeuronsOutput);
     
-    inputLayer.linkTo(outputLayer);
+    outputLayer.linkTo(inputLayer);
     
     initGraphics();
   }
@@ -35,11 +35,11 @@ class Structure {
     }
     outputLayer = new Layer(nbNeuronsOutput);
     
-    inputLayer.linkTo(hiddenLayers[0]);
-    for (int i=0; i<nbNeuronsHidden.length-1; i++) {
-      hiddenLayers[i].linkTo(hiddenLayers[i+1]);
+    hiddenLayers[0].linkTo(inputLayer);
+    for (int i=1; i<nbNeuronsHidden.length; i++) {
+      hiddenLayers[i].linkTo(hiddenLayers[i-1]);
     }
-    hiddenLayers[hiddenLayers.length-1].linkTo(outputLayer);
+    outputLayer.linkTo(hiddenLayers[hiddenLayers.length-1]);
     
     initGraphics();
   }
@@ -109,27 +109,27 @@ class Structure {
   void show () {
     // LINKS
     strokeWeight(1);
-    for (int i=0; i<inputLayer.neurons.length; i++) {
-      for (int j=0; j<inputLayer.nextLayer.neurons.length; j++) {
-        setLinkColour(inputLayer.neurons[i].links[j]);
-        if (hiddenLayers.length != 0) {
-          line(horizontalTab + neuronSize, neuronSize * i + inputTab + (neuronSize/2), horizontalTab + neuronSize * 2, neuronSize * j + hiddenTabs[0] + (neuronSize/2));
-        }
-        else {
-          line(horizontalTab + neuronSize, neuronSize * i + inputTab + (neuronSize/2), horizontalTab + neuronSize * 2, neuronSize * j + outputTab + (neuronSize/2));
+    for (int i=0; i<hiddenLayers.length; i++) {
+      for (int j=0; j<hiddenLayers[i].neurons.length; j++) {
+        for (int k=0; k<hiddenLayers[i].previousLayer.neurons.length; k++) {
+          setLinkColour(hiddenLayers[i].neurons[j].links[k]);
+          if (i != 0) {
+            line(horizontalTab + neuronSize * 2 * (i+1), neuronSize * j + hiddenTabs[i] + (neuronSize/2), horizontalTab + neuronSize * 2 * (i+1) - neuronSize, neuronSize * k + hiddenTabs[i-1] + (neuronSize/2));
+          }
+          else {
+            line(horizontalTab + neuronSize * 2 * (i+1), neuronSize * j + hiddenTabs[i] + (neuronSize/2), horizontalTab + neuronSize * 2 * (i+1) - neuronSize, neuronSize * k + inputTab + (neuronSize/2));
+          }
         }
       }
     }
-    for (int i=0; i<hiddenLayers.length; i++) {
-      for (int j=0; j<hiddenLayers[i].neurons.length; j++) {
-        for (int k=0; k<hiddenLayers[i].nextLayer.neurons.length; k++) {
-          setLinkColour(hiddenLayers[i].neurons[j].links[k]);
-          if (i == (hiddenLayers.length - 1)) {
-            line(horizontalTab + neuronSize * 2 * (i+1) + neuronSize, neuronSize * j + hiddenTabs[i] + (neuronSize/2), horizontalTab + neuronSize * 2 * (i+2), neuronSize * k + outputTab + (neuronSize/2));
-          }
-          else {
-            line(horizontalTab + neuronSize * 2 * (i+1) + neuronSize, neuronSize * j + hiddenTabs[i] + (neuronSize/2), horizontalTab + neuronSize * 2 * (i+2), neuronSize * k + hiddenTabs[i+1] + (neuronSize/2));
-          }
+    for (int i=0; i<outputLayer.neurons.length; i++) {
+      for (int j=0; j<outputLayer.previousLayer.neurons.length; j++) {
+        setLinkColour(outputLayer.neurons[i].links[j]);
+        if (hiddenLayers.length != 0) {
+          line(horizontalTab + neuronSize * 2 * (hiddenLayers.length+1), neuronSize * i + outputTab + (neuronSize/2), horizontalTab + neuronSize * 2 * (hiddenLayers.length+1) - neuronSize, neuronSize * j + hiddenTabs[hiddenLayers.length-1] + (neuronSize/2));
+        }
+        else {
+          line(horizontalTab + neuronSize * 2 * (hiddenLayers.length+1), neuronSize * i + outputTab + (neuronSize/2), horizontalTab + neuronSize * 2 * (hiddenLayers.length+1) - neuronSize, neuronSize * j + inputTab + (neuronSize/2));
         }
       }
     }

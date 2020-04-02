@@ -23,8 +23,8 @@ class Layer {
         neurons[i].links[j] = new Link();
       }
     }
-    layer.previousLayer = this;
-    nextLayer = layer;
+    layer.nextLayer = this;
+    previousLayer = layer;
   }
   
   

@@ -201,10 +201,10 @@ class Brain {
   // aka: delta rule
   float chainRuleOutput (int i, int j) {
     float x, y, z;
-    x = structure.outputLayer.neurons[j].value - structure.outputLayer.neurons[j].expectedValue;
-    y = sigmoidDerivative(structure.outputLayer.neurons[j].value);
-    z = structure.outputLayer.previousLayer.neurons[i].value;
-    structure.outputLayer.previousLayer.neurons[i].links[j].setGradients(x, y, z);
+    x = structure.outputLayer.neurons[i].value - structure.outputLayer.neurons[i].expectedValue;
+    y = sigmoidDerivative(structure.outputLayer.neurons[i].value);
+    z = structure.outputLayer.previousLayer.neurons[j].value;
+    structure.outputLayer.neurons[i].links[j].setGradients(x, y, z);
     return x * y * z;
   }
   
@@ -212,34 +212,16 @@ class Brain {
   float chainRuleHidden (int i, int j, int k) {
     float x, y, z;
     x = 0;
-    for (int l=0; l<structure.hiddenLayers[i].nextLayer.neurons[k].links.length; l++) {
-      x += structure.hiddenLayers[i].nextLayer.neurons[k].links[l].gradientX * structure.hiddenLayers[i].nextLayer.neurons[k].links[l].gradientY * structure.hiddenLayers[i].nextLayer.neurons[k].links[l].weight;
+    for (int l=0; l<structure.hiddenLayers[i].nextLayer.neurons.length; l++) {
+      x += structure.hiddenLayers[i].nextLayer.neurons[l].links[j].gradientX * structure.hiddenLayers[i].nextLayer.neurons[l].links[j].gradientY * structure.hiddenLayers[i].nextLayer.neurons[l].links[j].weight;
     }
-    y = sigmoidDerivative(structure.hiddenLayers[i].nextLayer.neurons[k].value);
-    z = structure.hiddenLayers[i].neurons[j].value;
+    y = sigmoidDerivative(structure.hiddenLayers[i].neurons[j].value);
+    z = structure.hiddenLayers[i].previousLayer.neurons[k].value;
     structure.hiddenLayers[i].neurons[j].links[k].setGradients(x, y, z);
     return x * y * z;
   }
   
-  // aka: delta rule
-  float chainRuleInput (int i, int j) {
-    float x, y, z;
-    x = 0;
-    for (int k=0; k<structure.inputLayer.nextLayer.neurons[j].links.length; k++) {
-      x += structure.inputLayer.nextLayer.neurons[j].links[k].gradientX * structure.inputLayer.nextLayer.neurons[j].links[k].gradientY * structure.inputLayer.nextLayer.neurons[j].links[k].weight;
-    }
-    y = sigmoidDerivative(structure.inputLayer.nextLayer.neurons[j].value);
-    z = structure.inputLayer.neurons[i].value;
-    structure.inputLayer.neurons[i].links[j].setGradients(x, y, z);
-    return x * y * z;
-  }
-  
   void updateWeights () {
-    for (int i=0; i<structure.inputLayer.neurons.length; i++) {
-      for (int j=0; j<structure.inputLayer.neurons[i].links.length; j++) {
-        structure.inputLayer.neurons[i].links[j].updateWeight();
-      }
-    }
     for (int i=0; i<structure.hiddenLayers.length; i++) {
       for (int j=0; j<structure.hiddenLayers[i].neurons.length; j++) {
         for (int k=0; k<structure.hiddenLayers[i].neurons[j].links.length; k++) {
@@ -247,29 +229,26 @@ class Brain {
         }
       }
     }
+    for (int i=0; i<structure.outputLayer.neurons.length; i++) {
+      for (int j=0; j<structure.outputLayer.neurons[i].links.length; j++) {
+        structure.outputLayer.neurons[i].links[j].updateWeight();
+      }
+    }
   }
   
   void backpropagation () {
     calculateErrorIndexes();
-    for (int i=0; i<structure.outputLayer.previousLayer.neurons.length; i++) {
-      for (int j=0; j<structure.outputLayer.previousLayer.neurons[i].links.length; j++) {
+    for (int i=0; i<structure.outputLayer.neurons.length; i++) {
+      for (int j=0; j<structure.outputLayer.neurons[i].links.length; j++) {
           float gradientWithRespect = chainRuleOutput(i, j);
-          structure.outputLayer.previousLayer.neurons[i].links[j].newWeight = structure.outputLayer.previousLayer.neurons[i].links[j].weight - (LEARNING_RATE * gradientWithRespect);
+          structure.outputLayer.neurons[i].links[j].newWeight = structure.outputLayer.neurons[i].links[j].weight - (LEARNING_RATE * gradientWithRespect);
       }
     }
-    for (int i=structure.hiddenLayers.length-2; i>=0; i--) {
+    for (int i=structure.hiddenLayers.length-1; i>=0; i--) {
       for (int j=0; j<structure.hiddenLayers[i].neurons.length; j++) {
         for (int k=0; k<structure.hiddenLayers[i].neurons[j].links.length; k++) {
           float gradientWithRespect = chainRuleHidden(i, j, k);
           structure.hiddenLayers[i].neurons[j].links[k].newWeight = structure.hiddenLayers[i].neurons[j].links[k].weight - (LEARNING_RATE * gradientWithRespect);
-        }
-      }
-    }
-    if (structure.hiddenLayers.length != 0) {
-      for (int i=0; i<structure.inputLayer.neurons.length; i++) {
-        for (int j=0; j<structure.inputLayer.neurons[i].links.length; j++) {
-            float gradientWithRespect = chainRuleInput(i, j);
-            structure.inputLayer.neurons[i].links[j].newWeight = structure.inputLayer.neurons[i].links[j].weight - (LEARNING_RATE * gradientWithRespect);
         }
       }
     }
@@ -319,19 +298,20 @@ class Brain {
   
   // aka: forward pass
   void compute () {
+    // FIXME
     for (int i=0; i<structure.hiddenLayers.length; i++) {
       for (int j=0; j<structure.hiddenLayers[i].neurons.length; j++) {
         float sumWeightedValue = 0;
-        for (int k=0; k<structure.hiddenLayers[i].previousLayer.neurons.length; k++) {
-          sumWeightedValue += (structure.hiddenLayers[i].previousLayer.neurons[k].links[j].weight * structure.hiddenLayers[i].previousLayer.neurons[k].value);
+        for (int k=0; k<structure.hiddenLayers[i].neurons[j].links.length; k++) {
+          sumWeightedValue += (structure.hiddenLayers[i].neurons[j].links[k].weight * structure.hiddenLayers[i].previousLayer.neurons[k].value);
         }
         structure.hiddenLayers[i].neurons[j].value = sigmoid(sumWeightedValue);
       }
     }
     for (int i=0; i<structure.outputLayer.neurons.length; i++) {
       float sumWeightedValue = 0;
-      for (int j=0; j<structure.outputLayer.previousLayer.neurons.length; j++) {
-        sumWeightedValue += (structure.outputLayer.previousLayer.neurons[j].links[i].weight * structure.outputLayer.previousLayer.neurons[j].value);
+      for (int j=0; j<structure.outputLayer.neurons[i].links.length; j++) {
+        sumWeightedValue += (structure.outputLayer.neurons[i].links[j].weight * structure.outputLayer.previousLayer.neurons[j].value);
       }
       structure.outputLayer.neurons[i].value = sigmoid(sumWeightedValue);
     }
@@ -384,21 +364,21 @@ class Brain {
         structure = new Structure(nbNeuronsInput, nbNeuronsOutput);
       }
       line = reader.readLine();
-      for (int i=0; i<structure.inputLayer.neurons.length; i++) {
-        line = reader.readLine();
-        String weights[] = split(line, " ");
-        for (int j=0; j<structure.inputLayer.neurons[i].links.length; j++) {
-          structure.inputLayer.neurons[i].links[j].weight = Float.parseFloat(weights[j]);
-        }
-      }
       for (int i=0; i<structure.hiddenLayers.length; i++) {
-        line = reader.readLine();
         for (int j=0; j<structure.hiddenLayers[i].neurons.length; j++) {
           line = reader.readLine();
           String weights[] = split(line, " ");
           for (int k=0; k<structure.hiddenLayers[i].neurons[j].links.length; k++) {
             structure.hiddenLayers[i].neurons[j].links[k].weight = Float.parseFloat(weights[k]);
           }
+        }
+        line = reader.readLine();
+      }
+      for (int i=0; i<structure.outputLayer.neurons.length; i++) {
+        line = reader.readLine();
+        String weights[] = split(line, " ");
+        for (int j=0; j<structure.outputLayer.neurons[i].links.length; j++) {
+          structure.outputLayer.neurons[i].links[j].weight = Float.parseFloat(weights[j]);
         }
       }
       reader.close();
@@ -441,17 +421,7 @@ class Brain {
     writer.print(structure.outputLayer.neurons.length);
     writer.println();
     writer.println();
-    for (int i=0; i<structure.inputLayer.neurons.length; i++) {
-      for (int j=0; j<structure.inputLayer.neurons[i].links.length; j++) {
-        writer.print(structure.inputLayer.neurons[i].links[j].weight);
-        if (j < (structure.inputLayer.neurons[i].links.length - 1)) {
-          writer.print(" ");
-        }
-      }
-      writer.println();
-    }
     if (structure.hiddenLayers.length > 0) {
-      writer.println();
       for (int i=0; i<structure.hiddenLayers.length; i++) {
         for (int j=0; j<structure.hiddenLayers[i].neurons.length; j++) {
           for (int k=0; k<structure.hiddenLayers[i].neurons[j].links.length; k++) {
@@ -464,6 +434,15 @@ class Brain {
         }
         writer.println();
       }
+    }
+    for (int i=0; i<structure.outputLayer.neurons.length; i++) {
+      for (int j=0; j<structure.outputLayer.neurons[i].links.length; j++) {
+        writer.print(structure.outputLayer.neurons[i].links[j].weight);
+        if (j < (structure.outputLayer.neurons[i].links.length - 1)) {
+          writer.print(" ");
+        }
+      }
+      writer.println();
     }
     writer.flush();
     writer.close();
