@@ -80,11 +80,11 @@ class Brain {
     if (! overwriteNN) {
       tmp = split(tmp[tmp.length-1], "_");
       for (int i=0; i<tmp.length - 2; i++) {
-        networkName = networkName.concat(tmp[i]);
+        this.networkName = networkName.concat(tmp[i]);
       }
     }
     else {
-      networkName = tmp[tmp.length-1];
+      this.networkName = tmp[tmp.length-1];
     }
     
     initGraphics();
